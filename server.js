@@ -5,8 +5,8 @@ import http from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parks, sportTypes } from "./lib/seed.js";
-import { bookings, tickets, makeCode } from "./lib/db.js";
+import { sportTypes } from "./lib/seed.js";
+import { parksStore, bookings, tickets, makeCode } from "./lib/db.js";
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -66,16 +66,66 @@ function isValidDate(s) {
 }
 
 function findPark(parkId) {
-  return parks.find((p) => p.id === parkId);
+  return parksStore.find(parkId);
 }
 
 function findFacility(facilityId) {
-  for (const park of parks) {
+  for (const park of parksStore.all()) {
     const facility = park.facilities.find((f) => f.id === facilityId);
     if (facility) return { park, facility };
   }
   return null;
 }
+
+// Public views of a park never include its staff admin key.
+function publicPark(park) {
+  const { adminKey, ...pub } = park;
+  return pub;
+}
+
+// Park staff endpoints authenticate with the X-Admin-Key header.
+function checkAdminKey(req, res, park) {
+  const key = req.headers["x-admin-key"];
+  if (!key || key !== park.adminKey) {
+    json(res, 401, { error: "invalid admin key for this park" });
+    return false;
+  }
+  return true;
+}
+
+function slugify(s) {
+  return String(s)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+}
+
+function parseFacilityInput(parkId, input, index, existing) {
+  const type = input?.type;
+  if (!sportTypes[type]) throw new Error(`facility ${index + 1}: unknown sport type`);
+  const nameEn = typeof input.name === "string" ? input.name : input.name?.en;
+  if (!nameEn || nameEn.trim().length < 2)
+    throw new Error(`facility ${index + 1}: name is required`);
+  const price = Number(input.pricePerHourETB);
+  const capacity = Number(input.capacity ?? 10);
+  if (!Number.isFinite(price) || price <= 0)
+    throw new Error(`facility ${index + 1}: pricePerHourETB must be positive`);
+  if (!Number.isInteger(capacity) || capacity < 1)
+    throw new Error(`facility ${index + 1}: capacity must be a positive integer`);
+  let id = `${parkId}-${type}-${index + 1}`;
+  let n = index + 1;
+  while (existing.some((f) => f.id === id)) id = `${parkId}-${type}-${++n}`;
+  return {
+    id,
+    type,
+    name: { en: nameEn.trim(), am: (typeof input.name === "object" && input.name?.am) || nameEn.trim() },
+    pricePerHourETB: price,
+    capacity
+  };
+}
+
+const PARK_THEMES = ["#1a7a4c", "#2d6a4f", "#1d6fa5", "#9a6a1f", "#40916c", "#0d7a8a", "#52796f", "#1e5f8a"];
 
 function availabilityFor(park, facility, date) {
   const taken = new Set();
@@ -98,10 +148,10 @@ const routes = [
     handler(req, res, _m, url) {
       const city = url.searchParams.get("city");
       const sport = url.searchParams.get("sport");
-      let result = parks;
+      let result = parksStore.all();
       if (city) result = result.filter((p) => p.city.toLowerCase() === city.toLowerCase());
       if (sport) result = result.filter((p) => p.facilities.some((f) => f.type === sport));
-      json(res, 200, { parks: result, sportTypes });
+      json(res, 200, { parks: result.map(publicPark), sportTypes });
     }
   },
   {
@@ -110,7 +160,7 @@ const routes = [
     handler(req, res, [, parkId]) {
       const park = findPark(parkId);
       if (!park) return json(res, 404, { error: "park not found" });
-      json(res, 200, { park, sportTypes });
+      json(res, 200, { park: publicPark(park), sportTypes });
     }
   },
   {
@@ -265,7 +315,7 @@ const routes = [
     method: "GET",
     pattern: /^\/api\/admin\/summary$/,
     handler(req, res) {
-      const summary = parks.map((park) => {
+      const summary = parksStore.all().map((park) => {
         const parkBookings = bookings.all().filter((b) => b.parkId === park.id);
         const parkTickets = tickets.all().filter((t) => t.parkId === park.id);
         const confirmed = parkBookings.filter((b) => b.status === "confirmed");
@@ -283,6 +333,135 @@ const routes = [
         };
       });
       json(res, 200, { summary });
+    }
+  },
+  {
+    // Park self-onboarding: register a park and receive its staff admin key.
+    method: "POST",
+    pattern: /^\/api\/parks$/,
+    async handler(req, res) {
+      const body = await readBody(req);
+      const nameEn = typeof body.name === "string" ? body.name : body.name?.en;
+      if (!nameEn || nameEn.trim().length < 3) return badRequest(res, "park name is required");
+      if (typeof body.city !== "string" || body.city.trim().length < 2)
+        return badRequest(res, "city is required");
+
+      const openHour = Number(body.openHour);
+      const closeHour = Number(body.closeHour);
+      if (
+        !Number.isInteger(openHour) || !Number.isInteger(closeHour) ||
+        openHour < 0 || closeHour > 24 || openHour >= closeHour
+      )
+        return badRequest(res, "openHour/closeHour must be integers with openHour < closeHour (0-24)");
+
+      const adultETB = Number(body.entrance?.adultETB);
+      const childETB = Number(body.entrance?.childETB);
+      if (!Number.isFinite(adultETB) || adultETB < 0 || !Number.isFinite(childETB) || childETB < 0)
+        return badRequest(res, "entrance.adultETB and entrance.childETB must be non-negative");
+
+      const baseId = slugify(nameEn) || "park";
+      let id = baseId;
+      let n = 1;
+      while (parksStore.find(id)) id = `${baseId}-${++n}`;
+
+      let facilities = [];
+      try {
+        const inputs = Array.isArray(body.facilities) ? body.facilities : [];
+        for (const [i, input] of inputs.entries())
+          facilities.push(parseFacilityInput(id, input, i, facilities));
+      } catch (err) {
+        return badRequest(res, err.message);
+      }
+
+      const park = parksStore.add({
+        id,
+        name: { en: nameEn.trim(), am: body.name?.am?.trim() || nameEn.trim() },
+        city: body.city.trim(),
+        region: (typeof body.region === "string" && body.region.trim()) || body.city.trim(),
+        description: {
+          en: (typeof body.description === "string" && body.description.trim()) ||
+            body.description?.en?.trim() || "",
+          am: body.description?.am?.trim() || ""
+        },
+        emoji: (typeof body.emoji === "string" && body.emoji.trim().slice(0, 4)) || "🌳",
+        theme: PARK_THEMES[parksStore.all().length % PARK_THEMES.length],
+        openHour,
+        closeHour,
+        entrance: { adultETB, childETB },
+        facilities,
+        adminKey: makeCode("KEY"),
+        createdAt: new Date().toISOString()
+      });
+      json(res, 201, { park: publicPark(park), adminKey: park.adminKey });
+    }
+  },
+  {
+    // Park staff: update opening hours and entrance fees.
+    method: "PATCH",
+    pattern: /^\/api\/parks\/([\w-]+)$/,
+    async handler(req, res, [, parkId]) {
+      const park = findPark(parkId);
+      if (!park) return json(res, 404, { error: "park not found" });
+      if (!checkAdminKey(req, res, park)) return;
+      const body = await readBody(req);
+
+      const openHour = body.openHour !== undefined ? Number(body.openHour) : park.openHour;
+      const closeHour = body.closeHour !== undefined ? Number(body.closeHour) : park.closeHour;
+      if (
+        !Number.isInteger(openHour) || !Number.isInteger(closeHour) ||
+        openHour < 0 || closeHour > 24 || openHour >= closeHour
+      )
+        return badRequest(res, "openHour/closeHour must be integers with openHour < closeHour (0-24)");
+
+      const adultETB =
+        body.entrance?.adultETB !== undefined ? Number(body.entrance.adultETB) : park.entrance.adultETB;
+      const childETB =
+        body.entrance?.childETB !== undefined ? Number(body.entrance.childETB) : park.entrance.childETB;
+      if (!Number.isFinite(adultETB) || adultETB < 0 || !Number.isFinite(childETB) || childETB < 0)
+        return badRequest(res, "entrance fees must be non-negative");
+
+      park.openHour = openHour;
+      park.closeHour = closeHour;
+      park.entrance = { adultETB, childETB };
+      parksStore.update(park);
+      json(res, 200, { park: publicPark(park) });
+    }
+  },
+  {
+    // Park staff: add a bookable facility.
+    method: "POST",
+    pattern: /^\/api\/parks\/([\w-]+)\/facilities$/,
+    async handler(req, res, [, parkId]) {
+      const park = findPark(parkId);
+      if (!park) return json(res, 404, { error: "park not found" });
+      if (!checkAdminKey(req, res, park)) return;
+      const body = await readBody(req);
+      let facility;
+      try {
+        facility = parseFacilityInput(park.id, body, park.facilities.length, park.facilities);
+      } catch (err) {
+        return badRequest(res, err.message);
+      }
+      park.facilities.push(facility);
+      parksStore.update(park);
+      json(res, 201, { facility });
+    }
+  },
+  {
+    // Park staff: today's (or any date's) bookings and ticket sales.
+    method: "GET",
+    pattern: /^\/api\/parks\/([\w-]+)\/manage\/bookings$/,
+    handler(req, res, [, parkId], url) {
+      const park = findPark(parkId);
+      if (!park) return json(res, 404, { error: "park not found" });
+      if (!checkAdminKey(req, res, park)) return;
+      const date = url.searchParams.get("date");
+      if (date && !isValidDate(date)) return badRequest(res, "date must be YYYY-MM-DD");
+      const byDate = (x) => !date || x.date === date;
+      json(res, 200, {
+        bookings: bookings.all().filter((b) => b.parkId === park.id && byDate(b)),
+        tickets: tickets.all().filter((t) => t.parkId === park.id && byDate(t))
+      });
     }
   }
 ];

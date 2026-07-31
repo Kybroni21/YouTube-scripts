@@ -57,6 +57,48 @@ const STRINGS = {
     "admin.bookings": "Bookings",
     "admin.tickets": "Ticket visitors",
     "admin.revenue": "Revenue (ETB)",
+    "nav.staff": "Park Staff",
+    "nav.addPark": "+ Add Park",
+    "onboard.title": "Add your park to EthioParks",
+    "onboard.sub": "Register your park once and start taking digital bookings — no call center needed.",
+    "onboard.nameEn": "Park name (English)",
+    "onboard.nameAm": "Park name (Amharic, optional)",
+    "onboard.city": "City",
+    "onboard.region": "Region",
+    "onboard.desc": "Short description",
+    "onboard.open": "Opens at",
+    "onboard.close": "Closes at",
+    "onboard.adultFee": "Adult entrance fee (ETB)",
+    "onboard.childFee": "Child entrance fee (ETB)",
+    "onboard.facilities": "Bookable facilities",
+    "onboard.sport": "Sport",
+    "onboard.addFacility": "+ Add facility",
+    "onboard.facilityName": "Facility name",
+    "onboard.price": "Price (ETB/hr)",
+    "onboard.capacity": "Capacity",
+    "onboard.remove": "Remove",
+    "onboard.submit": "Register park",
+    "onboard.done": "Park registered!",
+    "onboard.keyNote": "This is your staff admin key. Save it somewhere safe — you'll need it to open the Park Staff portal. It will not be shown again.",
+    "onboard.goStaff": "Open staff portal",
+    "manage.title": "Park staff portal",
+    "manage.sub": "Sign in with your park and admin key to see bookings and manage settings. Demo key for seeded parks: demo-<park-id>.",
+    "manage.park": "Park",
+    "manage.key": "Admin key",
+    "manage.signIn": "Open portal",
+    "manage.bookingsFor": "Bookings",
+    "manage.ticketsFor": "Ticket sales",
+    "manage.allDates": "All dates",
+    "manage.facility": "Facility",
+    "manage.customer": "Customer",
+    "manage.phone": "Phone",
+    "manage.amount": "Amount (ETB)",
+    "manage.none": "Nothing yet for this date.",
+    "manage.settings": "Park settings",
+    "manage.save": "Save settings",
+    "manage.saved": "Saved.",
+    "manage.newFacility": "Add a facility",
+    "manage.added": "Facility added.",
     "common.perHour": "ETB/hr",
     "common.loading": "Loading…",
     "common.back": "← Back",
@@ -117,6 +159,48 @@ const STRINGS = {
     "admin.bookings": "ማስያዣዎች",
     "admin.tickets": "የትኬት ጎብኚዎች",
     "admin.revenue": "ገቢ (ብር)",
+    "nav.staff": "የፓርክ ሰራተኞች",
+    "nav.addPark": "+ ፓርክ ጨምር",
+    "onboard.title": "ፓርክዎን ወደ ኢትዮፓርክስ ይጨምሩ",
+    "onboard.sub": "ፓርክዎን አንድ ጊዜ ይመዝግቡ እና ዲጂታል ማስያዣ መቀበል ይጀምሩ — የጥሪ ማዕከል አያስፈልግም።",
+    "onboard.nameEn": "የፓርክ ስም (እንግሊዝኛ)",
+    "onboard.nameAm": "የፓርክ ስም (አማርኛ፣ አማራጭ)",
+    "onboard.city": "ከተማ",
+    "onboard.region": "ክልል",
+    "onboard.desc": "አጭር መግለጫ",
+    "onboard.open": "የሚከፈትበት ሰዓት",
+    "onboard.close": "የሚዘጋበት ሰዓት",
+    "onboard.adultFee": "የአዋቂ መግቢያ ክፍያ (ብር)",
+    "onboard.childFee": "የልጅ መግቢያ ክፍያ (ብር)",
+    "onboard.facilities": "የሚያዙ ሜዳዎች",
+    "onboard.sport": "ስፖርት",
+    "onboard.addFacility": "+ ሜዳ ጨምር",
+    "onboard.facilityName": "የሜዳ ስም",
+    "onboard.price": "ዋጋ (ብር/ሰዓት)",
+    "onboard.capacity": "አቅም",
+    "onboard.remove": "አስወግድ",
+    "onboard.submit": "ፓርኩን መዝግብ",
+    "onboard.done": "ፓርኩ ተመዝግቧል!",
+    "onboard.keyNote": "ይህ የሰራተኞች አስተዳደር ቁልፍዎ ነው። ደህንነቱ በተጠበቀ ቦታ ያስቀምጡት — የፓርክ ሰራተኞች ፖርታልን ለመክፈት ያስፈልጋል። ዳግም አይታይም።",
+    "onboard.goStaff": "የሰራተኞች ፖርታል ክፈት",
+    "manage.title": "የፓርክ ሰራተኞች ፖርታል",
+    "manage.sub": "ማስያዣዎችን ለማየት እና ቅንብሮችን ለማስተዳደር በፓርክዎ እና በአስተዳደር ቁልፍዎ ይግቡ። ለናሙና ፓርኮች ቁልፍ፦ demo-<park-id>።",
+    "manage.park": "ፓርክ",
+    "manage.key": "የአስተዳደር ቁልፍ",
+    "manage.signIn": "ፖርታል ክፈት",
+    "manage.bookingsFor": "ማስያዣዎች",
+    "manage.ticketsFor": "የትኬት ሽያጭ",
+    "manage.allDates": "ሁሉም ቀናት",
+    "manage.facility": "ሜዳ",
+    "manage.customer": "ደንበኛ",
+    "manage.phone": "ስልክ",
+    "manage.amount": "መጠን (ብር)",
+    "manage.none": "ለዚህ ቀን እስካሁን ምንም የለም።",
+    "manage.settings": "የፓርክ ቅንብሮች",
+    "manage.save": "ቅንብሮችን አስቀምጥ",
+    "manage.saved": "ተቀምጧል።",
+    "manage.newFacility": "ሜዳ ጨምር",
+    "manage.added": "ሜዳው ተጨምሯል።",
     "common.perHour": "ብር/ሰዓት",
     "common.loading": "በመጫን ላይ…",
     "common.back": "← ተመለስ",
@@ -572,6 +656,318 @@ async function adminView() {
     </div>`;
 }
 
+function hourOptions(from, to, selected) {
+  let out = "";
+  for (let h = from; h <= to; h++)
+    out += `<option value="${h}" ${h === selected ? "selected" : ""}>${fmtHour(h)}</option>`;
+  return out;
+}
+
+async function onboardView() {
+  const { sportTypes } = await loadCatalog();
+  const sportOpts = Object.entries(sportTypes)
+    .map(([k, v]) => `<option value="${k}">${v.emoji} ${localName(v)}</option>`)
+    .join("");
+
+  const facilityRow = () => `
+    <div class="facility" data-facility-row>
+      <div style="flex:1;min-width:220px">
+        <div class="field"><label>${t("onboard.sport")}</label>
+          <select name="ftype">${sportOpts}</select></div>
+        <div class="field"><label>${t("onboard.facilityName")}</label>
+          <input name="fname" required minlength="2"></div>
+        <div class="field"><label>${t("onboard.price")}</label>
+          <input name="fprice" type="number" min="1" value="500" required></div>
+        <div class="field"><label>${t("onboard.capacity")}</label>
+          <input name="fcapacity" type="number" min="1" value="10" required></div>
+      </div>
+      <button type="button" class="btn btn-secondary" data-remove-row>${t("onboard.remove")}</button>
+    </div>`;
+
+  app.innerHTML = `
+    <div class="panel">
+      <h2>${t("onboard.title")}</h2>
+      <p class="notice">${t("onboard.sub")}</p>
+      <form id="onboardForm">
+        <div class="field"><label>${t("onboard.nameEn")}</label><input name="nameEn" required minlength="3"></div>
+        <div class="field"><label>${t("onboard.nameAm")}</label><input name="nameAm"></div>
+        <div class="field"><label>${t("onboard.city")}</label><input name="city" required minlength="2"></div>
+        <div class="field"><label>${t("onboard.region")}</label><input name="region"></div>
+        <div class="field"><label>${t("onboard.desc")}</label><input name="desc"></div>
+        <div class="field"><label>${t("onboard.open")}</label>
+          <select name="openHour">${hourOptions(0, 23, 8)}</select></div>
+        <div class="field"><label>${t("onboard.close")}</label>
+          <select name="closeHour">${hourOptions(1, 24, 20)}</select></div>
+        <div class="field"><label>${t("onboard.adultFee")}</label>
+          <input name="adultFee" type="number" min="0" value="100" required></div>
+        <div class="field"><label>${t("onboard.childFee")}</label>
+          <input name="childFee" type="number" min="0" value="50" required></div>
+        <h3>${t("onboard.facilities")}</h3>
+        <div id="facilityRows"></div>
+        <p><button type="button" class="btn btn-secondary" id="addRow">${t("onboard.addFacility")}</button></p>
+        <div class="error-msg" id="err"></div>
+        <button class="btn btn-primary">${t("onboard.submit")}</button>
+      </form>
+    </div>`;
+
+  const rows = document.getElementById("facilityRows");
+  const addRow = () => {
+    rows.insertAdjacentHTML("beforeend", facilityRow());
+    rows.querySelectorAll("[data-remove-row]").forEach((btn) => {
+      btn.onclick = () => btn.closest("[data-facility-row]").remove();
+    });
+  };
+  document.getElementById("addRow").addEventListener("click", addRow);
+  addRow();
+
+  document.getElementById("onboardForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const form = ev.target;
+    const errBox = document.getElementById("err");
+    errBox.textContent = "";
+    const facilities = [...rows.querySelectorAll("[data-facility-row]")].map((row) => ({
+      type: row.querySelector("[name=ftype]").value,
+      name: row.querySelector("[name=fname]").value,
+      pricePerHourETB: Number(row.querySelector("[name=fprice]").value),
+      capacity: Number(row.querySelector("[name=fcapacity]").value)
+    }));
+    try {
+      const { park, adminKey } = await api("/api/parks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: { en: form.nameEn.value, am: form.nameAm.value || undefined },
+          city: form.city.value,
+          region: form.region.value || undefined,
+          description: form.desc.value || undefined,
+          openHour: Number(form.openHour.value),
+          closeHour: Number(form.closeHour.value),
+          entrance: { adultETB: Number(form.adultFee.value), childETB: Number(form.childFee.value) },
+          facilities
+        })
+      });
+      catalog = null; // new park should appear in the directory
+      sessionStorage.setItem("ethioparks-staff", JSON.stringify({ parkId: park.id, key: adminKey }));
+      app.innerHTML = `
+        <div class="confirm-box">
+          <h2>✅ ${t("onboard.done")}</h2>
+          <p>${park.emoji} ${esc(localName(park.name))} — ${esc(park.city)}</p>
+          <div class="confirm-code">${adminKey}</div>
+          <p class="notice">${t("onboard.keyNote")}</p>
+          <a class="btn btn-primary" href="#/manage" data-nav>${t("onboard.goStaff")}</a>
+          <a class="btn btn-secondary" href="#/park/${park.id}" data-nav>${t("confirm.another")}</a>
+        </div>`;
+    } catch (e) {
+      errBox.textContent = e.message;
+    }
+  });
+}
+
+async function manageView() {
+  const { parks } = await loadCatalog();
+  const saved = JSON.parse(sessionStorage.getItem("ethioparks-staff") || "null");
+
+  app.innerHTML = `
+    <div class="panel">
+      <h2>${t("manage.title")}</h2>
+      <p class="notice">${t("manage.sub")}</p>
+      <form id="staffLogin">
+        <div class="field"><label>${t("manage.park")}</label>
+          <select name="parkId">${parks
+            .map(
+              (p) =>
+                `<option value="${p.id}" ${saved?.parkId === p.id ? "selected" : ""}>${p.emoji} ${esc(localName(p.name))}</option>`
+            )
+            .join("")}</select></div>
+        <div class="field"><label>${t("manage.key")}</label>
+          <input name="key" required value="${saved ? esc(saved.key) : ""}"></div>
+        <div class="error-msg" id="err"></div>
+        <button class="btn btn-primary">${t("manage.signIn")}</button>
+      </form>
+    </div>
+    <div id="portal"></div>`;
+
+  document.getElementById("staffLogin").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const parkId = ev.target.parkId.value;
+    const key = ev.target.key.value.trim();
+    sessionStorage.setItem("ethioparks-staff", JSON.stringify({ parkId, key }));
+    renderPortal(parkId, key);
+  });
+
+  async function renderPortal(parkId, key) {
+    const errBox = document.getElementById("err");
+    const portal = document.getElementById("portal");
+    errBox.textContent = "";
+    const park = parks.find((p) => p.id === parkId);
+    const headers = { "X-Admin-Key": key };
+    let date = todayISO();
+    let allDates = false;
+
+    async function loadData() {
+      const q = allDates ? "" : `?date=${date}`;
+      return api(`/api/parks/${parkId}/manage/bookings${q}`, { headers });
+    }
+
+    let data;
+    try {
+      data = await loadData();
+    } catch (e) {
+      errBox.textContent = e.message;
+      portal.innerHTML = "";
+      return;
+    }
+
+    const facilityName = (id) => {
+      const f = park.facilities.find((x) => x.id === id);
+      return f ? localName(f.name) : id;
+    };
+
+    const renderTables = () => {
+      const rows = (items, cols) =>
+        items.length
+          ? items.map((x) => `<tr>${cols(x)}</tr>`).join("")
+          : `<tr><td colspan="6" class="notice">${t("manage.none")}</td></tr>`;
+      document.getElementById("staffTables").innerHTML = `
+        <h3 class="section-title">${t("manage.bookingsFor")}</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>${t("common.date")}</th><th>${t("common.time")}</th><th>${t("manage.facility")}</th>
+          <th>${t("manage.customer")}</th><th>${t("manage.phone")}</th><th>${t("manage.amount")}</th><th>${t("common.status")}</th></tr></thead>
+          <tbody>${rows(data.bookings, (b) => `
+            <td>${b.date}</td><td>${fmtHour(b.hour)}–${fmtHour(b.hour + b.durationHours)}</td>
+            <td>${esc(facilityName(b.facilityId))}</td><td>${esc(b.name)}</td><td>${esc(b.phone)}</td>
+            <td>${b.amountETB.toLocaleString()}</td><td class="status-${b.status}">${b.status}</td>`)}</tbody>
+        </table></div>
+        <h3 class="section-title">${t("manage.ticketsFor")}</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>${t("common.date")}</th><th>${t("manage.customer")}</th><th>${t("manage.phone")}</th>
+          <th>${t("ticket.adults")}</th><th>${t("ticket.children")}</th><th>${t("manage.amount")}</th></tr></thead>
+          <tbody>${rows(data.tickets, (x) => `
+            <td>${x.date}</td><td>${esc(x.name)}</td><td>${esc(x.phone)}</td>
+            <td>${x.adults}</td><td>${x.children}</td><td>${x.amountETB.toLocaleString()}</td>`)}</tbody>
+        </table></div>`;
+    };
+
+    const sportOpts = Object.entries(catalog.sportTypes)
+      .map(([k, v]) => `<option value="${k}">${v.emoji} ${localName(v)}</option>`)
+      .join("");
+
+    portal.innerHTML = `
+      <div class="filters" style="margin-top:1.1rem">
+        <input type="date" id="staffDate" value="${date}">
+        <label style="display:flex;align-items:center;gap:0.4rem;flex:0">
+          <input type="checkbox" id="staffAll"> ${t("manage.allDates")}</label>
+      </div>
+      <div id="staffTables"></div>
+      <h3 class="section-title">${t("manage.settings")}</h3>
+      <div class="panel">
+        <form id="settingsForm">
+          <div class="field"><label>${t("onboard.open")}</label>
+            <select name="openHour">${hourOptions(0, 23, park.openHour)}</select></div>
+          <div class="field"><label>${t("onboard.close")}</label>
+            <select name="closeHour">${hourOptions(1, 24, park.closeHour)}</select></div>
+          <div class="field"><label>${t("onboard.adultFee")}</label>
+            <input name="adultFee" type="number" min="0" value="${park.entrance.adultETB}"></div>
+          <div class="field"><label>${t("onboard.childFee")}</label>
+            <input name="childFee" type="number" min="0" value="${park.entrance.childETB}"></div>
+          <div class="error-msg" id="settingsErr"></div>
+          <button class="btn btn-primary">${t("manage.save")}</button>
+          <span class="notice" id="settingsOk"></span>
+        </form>
+      </div>
+      <h3 class="section-title">${t("manage.newFacility")}</h3>
+      <div class="panel">
+        <form id="newFacilityForm">
+          <div class="field"><select name="ftype">${sportOpts}</select></div>
+          <div class="field"><label>${t("onboard.facilityName")}</label>
+            <input name="fname" required minlength="2"></div>
+          <div class="field"><label>${t("onboard.price")}</label>
+            <input name="fprice" type="number" min="1" value="500" required></div>
+          <div class="field"><label>${t("onboard.capacity")}</label>
+            <input name="fcapacity" type="number" min="1" value="10" required></div>
+          <div class="error-msg" id="facilityErr"></div>
+          <button class="btn btn-primary">${t("onboard.addFacility")}</button>
+          <span class="notice" id="facilityOk"></span>
+        </form>
+      </div>`;
+
+    renderTables();
+
+    const refresh = async () => {
+      try {
+        data = await loadData();
+        renderTables();
+      } catch (e) {
+        errBox.textContent = e.message;
+      }
+    };
+    document.getElementById("staffDate").addEventListener("change", (ev) => {
+      date = ev.target.value;
+      refresh();
+    });
+    document.getElementById("staffAll").addEventListener("change", (ev) => {
+      allDates = ev.target.checked;
+      refresh();
+    });
+
+    document.getElementById("settingsForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const f = ev.target;
+      const errEl = document.getElementById("settingsErr");
+      const okEl = document.getElementById("settingsOk");
+      errEl.textContent = "";
+      okEl.textContent = "";
+      try {
+        const { park: updated } = await api(`/api/parks/${parkId}`, {
+          method: "PATCH",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            openHour: Number(f.openHour.value),
+            closeHour: Number(f.closeHour.value),
+            entrance: { adultETB: Number(f.adultFee.value), childETB: Number(f.childFee.value) }
+          })
+        });
+        Object.assign(park, updated);
+        catalog = null;
+        okEl.textContent = t("manage.saved");
+      } catch (e) {
+        errEl.textContent = e.message;
+      }
+    });
+
+    document.getElementById("newFacilityForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const f = ev.target;
+      const errEl = document.getElementById("facilityErr");
+      const okEl = document.getElementById("facilityOk");
+      errEl.textContent = "";
+      okEl.textContent = "";
+      try {
+        const { facility } = await api(`/api/parks/${parkId}/facilities`, {
+          method: "POST",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: f.ftype.value,
+            name: f.fname.value,
+            pricePerHourETB: Number(f.fprice.value),
+            capacity: Number(f.fcapacity.value)
+          })
+        });
+        park.facilities.push(facility);
+        catalog = null;
+        okEl.textContent = t("manage.added");
+        f.fname.value = "";
+      } catch (e) {
+        errEl.textContent = e.message;
+      }
+    });
+  }
+
+  if (saved?.parkId && saved?.key && parks.some((p) => p.id === saved.parkId)) {
+    renderPortal(saved.parkId, saved.key);
+  }
+}
+
 // ---------------- router ----------------
 
 async function route() {
@@ -584,6 +980,8 @@ async function route() {
     else if ((m = hash.match(/^#\/tickets\/([\w-]+)$/))) await ticketView(m[1]);
     else if (hash === "#/my") await myView();
     else if (hash === "#/admin") await adminView();
+    else if (hash === "#/onboard") await onboardView();
+    else if (hash === "#/manage") await manageView();
     else await homeView();
   } catch (e) {
     app.innerHTML = `<p class="error-msg">${esc(e.message)}</p>`;

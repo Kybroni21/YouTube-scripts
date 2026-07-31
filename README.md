@@ -14,6 +14,13 @@ volleyball and more — and buy entrance tickets straight from their phone.
   1–4 hour slots, and get a short confirmation code to show at the gate.
 - **Entrance tickets** — buy adult/child entrance tickets for any park.
 - **My bookings** — look up or cancel a booking with your code + phone number.
+- **Park self-onboarding** — any park can register itself (name, hours, fees,
+  facilities) and immediately start taking bookings; it receives a private
+  staff admin key on registration.
+- **Park staff portal** — sign in with the admin key to see the day's bookings
+  and ticket sales (with customer contacts), change opening hours and entrance
+  fees, and add new facilities. Seeded parks use demo keys of the form
+  `demo-<park-id>` (e.g. `demo-entoto-park`).
 - **Operations dashboard** — live bookings, ticket visitors and revenue per park.
 - **Bilingual UI** — full English / Amharic (አማርኛ) toggle.
 - **Ethiopian payments** — Telebirr, CBE Birr, Chapa or pay-at-park
@@ -29,7 +36,8 @@ npm start          # serves http://localhost:3000
 npm test           # runs the API test suite (node --test)
 ```
 
-Bookings persist to `data/db.json` (created on first write).
+Parks, bookings and tickets persist to `data/db.json`; the park catalogue is
+seeded from `lib/seed.js` on first run.
 
 ## Architecture
 
@@ -54,12 +62,18 @@ test/api.test.mjs  End-to-end API tests via node:test
 | POST | `/api/tickets` | Buy entrance tickets |
 | GET | `/api/tickets/lookup?code=&phone=` | Find a ticket |
 | GET | `/api/admin/summary` | Per-park bookings/revenue summary |
+| POST | `/api/parks` | Onboard a new park (returns its staff admin key) |
+| PATCH | `/api/parks/:id` 🔑 | Update opening hours / entrance fees |
+| POST | `/api/parks/:id/facilities` 🔑 | Add a bookable facility |
+| GET | `/api/parks/:id/manage/bookings?date=` 🔑 | Staff view of bookings & ticket sales |
+
+🔑 = requires the park's `X-Admin-Key` header.
 
 ## Roadmap to production
 
 1. **Real payments** — Telebirr H5/SuperApp and Chapa checkout integration.
 2. **SMS confirmations** — send the confirmation code via SMS gateway.
-3. **Park onboarding portal** — let each park manage its own facilities,
-   prices, hours and blackout dates.
-4. **Database** — replace the JSON store with Postgres; add auth for park staff.
+3. **Blackout dates & maintenance windows** for park staff.
+4. **Database & auth hardening** — replace the JSON store with Postgres;
+   hashed staff credentials with sessions instead of a single admin key.
 5. **Native apps** — wrap the mobile-first web app for Android/iOS.
