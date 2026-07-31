@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EthioParks — Book Ethiopian Parks</title>
+  <meta name="description" content="Discover and book sports facilities and entrance tickets across Ethiopian parks — soccer, basketball, tennis, pickleball and more.">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/" data-nav>
+      <span class="brand-mark">🌳</span>
+      <span class="brand-name">EthioParks</span>
+    </a>
+    <nav class="topnav">
+      <a href="#/" data-nav data-i18n="nav.parks">Parks</a>
+      <a href="#/my" data-nav data-i18n="nav.my">My Bookings</a>
+      <a href="#/admin" data-nav data-i18n="nav.admin">Dashboard</a>
+      <button id="langToggle" class="lang-toggle" type="button">አማ</button>
+    </nav>
+  </header>
+
+  <main id="app" class="app"></main>
+
+  <footer class="footer">
+    <p data-i18n="footer.tag">One app for every park in Ethiopia — book courts, pitches and tickets from your phone.</p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

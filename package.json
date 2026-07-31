@@ -1,0 +1,16 @@
+{
+  "name": "ethio-parks-booking",
+  "version": "0.1.0",
+  "description": "One app to discover and book sports facilities and entrance tickets across Ethiopian parks",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
