@@ -39,6 +39,11 @@ const STRINGS = {
     "ticket.adults": "Adults",
     "ticket.children": "Children",
     "ticket.confirm": "Buy tickets",
+    "pay.title": "Checkout",
+    "pay.pin": "PIN",
+    "pay.payBtn": "Pay",
+    "pay.note": "Simulated payment for this MVP — no real money moves. Your reservation is held for 10 minutes; PIN 0000 simulates a declined payment.",
+    "pay.payNow": "Pay now",
     "confirm.booked": "Booking confirmed!",
     "confirm.ticket": "Tickets confirmed!",
     "confirm.keep": "Save this code — you'll show it at the park gate. We matched it to your phone number.",
@@ -141,6 +146,11 @@ const STRINGS = {
     "ticket.adults": "አዋቂዎች",
     "ticket.children": "ልጆች",
     "ticket.confirm": "ትኬት ይግዙ",
+    "pay.title": "ክፍያ",
+    "pay.pin": "ፒን",
+    "pay.payBtn": "ይክፈሉ",
+    "pay.note": "ለዚህ ናሙና የተመሰለ ክፍያ ነው — እውነተኛ ገንዘብ አይንቀሳቀስም። ቦታዎ ለ10 ደቂቃ ተይዟል፤ ፒን 0000 ውድቅ የተደረገ ክፍያን ያመስላል።",
+    "pay.payNow": "አሁን ይክፈሉ",
     "confirm.booked": "ማስያዣው ተረጋግጧል!",
     "confirm.ticket": "ትኬቶቹ ተረጋግጠዋል!",
     "confirm.keep": "ይህን ኮድ ያስቀምጡ — በፓርኩ በር ላይ ያሳዩታል። ከስልክ ቁጥርዎ ጋር ተመዝግቧል።",
@@ -473,11 +483,13 @@ async function bookView(facilityId) {
           paymentMethod: form.paymentMethod.value
         })
       });
-      confirmationView(t("confirm.booked"), booking.code, [
+      const lines = [
         `${park.emoji} ${localName(park.name)} — ${localName(facility.name)}`,
         `${booking.date} · ${fmtHour(booking.hour)}–${fmtHour(booking.hour + booking.durationHours)}`,
         `${t("book.total")}: ${fmtETB(booking.amountETB)}`
-      ]);
+      ];
+      if (booking.status === "pending-payment") checkoutView("booking", booking, lines);
+      else confirmationView(t("confirm.booked"), booking.code, lines);
     } catch (e) {
       errBox.textContent = e.message;
       submitBtn.disabled = false;
@@ -537,11 +549,53 @@ async function ticketView(parkId) {
           paymentMethod: form.paymentMethod.value
         })
       });
-      confirmationView(t("confirm.ticket"), ticket.code, [
+      const lines = [
         `${park.emoji} ${localName(park.name)}`,
         `${ticket.date} · ${ticket.adults} ${t("ticket.adults").toLowerCase()}, ${ticket.children} ${t("ticket.children").toLowerCase()}`,
         `${t("book.total")}: ${fmtETB(ticket.amountETB)}`
-      ]);
+      ];
+      if (ticket.status === "pending-payment") checkoutView("ticket", ticket, lines);
+      else confirmationView(t("confirm.ticket"), ticket.code, lines);
+    } catch (e) {
+      errBox.textContent = e.message;
+    }
+  });
+}
+
+const PROVIDER_LABELS = { telebirr: "Telebirr", "cbe-birr": "CBE Birr", chapa: "Chapa" };
+
+function checkoutView(kind, item, lines) {
+  app.innerHTML = `
+    <div class="panel">
+      <h2>💳 ${t("pay.title")} — ${PROVIDER_LABELS[item.paymentMethod] || esc(item.paymentMethod)}</h2>
+      ${lines.map((l) => `<p class="notice">${esc(l)}</p>`).join("")}
+      <div class="pay-amount">${fmtETB(item.amountETB)}</div>
+      <form id="payForm">
+        <div class="field"><label>${t("book.phone")}</label>
+          <input value="${esc(item.phone)}" disabled></div>
+        <div class="field"><label>${t("pay.pin")}</label>
+          <input name="pin" type="password" inputmode="numeric" minlength="4" maxlength="6"
+            required placeholder="••••" autocomplete="off"></div>
+        <div class="error-msg" id="err"></div>
+        <button class="btn btn-primary">${t("pay.payBtn")} ${fmtETB(item.amountETB)}</button>
+      </form>
+      <p class="notice">${t("pay.note")}</p>
+    </div>`;
+  document.getElementById("payForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const errBox = document.getElementById("err");
+    errBox.textContent = "";
+    try {
+      await api(`/api/payments/${item.code}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: ev.target.pin.value })
+      });
+      confirmationView(
+        kind === "ticket" ? t("confirm.ticket") : t("confirm.booked"),
+        item.code,
+        lines
+      );
     } catch (e) {
       errBox.textContent = e.message;
     }
@@ -594,19 +648,38 @@ async function myView() {
       const detail = isTicket
         ? `${item.adults} ${t("ticket.adults")}, ${item.children} ${t("ticket.children")}`
         : `${fmtHour(item.hour)}–${fmtHour(item.hour + item.durationHours)}`;
+      const statusIcon =
+        item.status === "confirmed" ? "✅" : item.status === "pending-payment" ? "⏳" : "❌";
+      const lines = [
+        park ? `${park.emoji} ${localName(park.name)}` : item.parkId,
+        `${item.date} · ${detail}`,
+        `${t("book.total")}: ${fmtETB(item.amountETB)}`
+      ];
       resultBox.innerHTML = `
         <div class="facility" style="margin-top:1rem">
           <div>
             <div class="facility-name">${park ? park.emoji + " " + esc(localName(park.name)) : esc(item.parkId)}</div>
             <div class="facility-price">${item.date} · ${detail} · ${fmtETB(item.amountETB)}</div>
-            <div class="status-${item.status}">${item.status === "confirmed" ? "✅" : "❌"} ${item.status}</div>
+            <div class="status-${item.status}">${statusIcon} ${item.status}</div>
           </div>
-          ${
-            !isTicket && item.status === "confirmed"
-              ? `<button class="btn btn-danger" id="cancelBtn">${t("my.cancel")}</button>`
-              : ""
-          }
+          <div>
+            ${
+              item.status === "pending-payment"
+                ? `<button class="btn btn-primary" id="payNowBtn">${t("pay.payNow")}</button> `
+                : ""
+            }
+            ${
+              !isTicket && (item.status === "confirmed" || item.status === "pending-payment")
+                ? `<button class="btn btn-danger" id="cancelBtn">${t("my.cancel")}</button>`
+                : ""
+            }
+          </div>
         </div>`;
+      const payNowBtn = document.getElementById("payNowBtn");
+      if (payNowBtn)
+        payNowBtn.addEventListener("click", () =>
+          checkoutView(isTicket ? "ticket" : "booking", item, lines)
+        );
       const cancelBtn = document.getElementById("cancelBtn");
       if (cancelBtn)
         cancelBtn.addEventListener("click", async () => {

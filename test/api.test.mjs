@@ -87,6 +87,14 @@ test("books a slot, blocks double-booking, and cancels", async () => {
   assert.equal(booking.amountETB, 1200);
   assert.equal(booking.phone, "0911234567");
 
+  // Digital payments start pending; the checkout confirms them.
+  assert.equal(booking.status, "pending-payment");
+  const declined = await post(`/api/payments/${booking.code}/confirm`, { pin: "0000" });
+  assert.equal(declined.status, 402);
+  const paid = await post(`/api/payments/${booking.code}/confirm`, { pin: "1234" });
+  assert.equal(paid.status, 200);
+  assert.equal(paid.body.booking.status, "confirmed");
+
   // Overlapping hour is now taken.
   const avail = await get(
     `/api/parks/addis-sport-park/availability?facilityId=asp-tennis-1&date=${today}`
@@ -143,9 +151,52 @@ test("sells entrance tickets and computes totals", async () => {
   assert.equal(status, 201);
   assert.match(body.ticket.code, /^TKT-[A-Z0-9]{6}$/);
   assert.equal(body.ticket.amountETB, 2 * 300 + 3 * 150);
+  assert.equal(body.ticket.status, "pending-payment");
+
+  const paid = await post(`/api/payments/${body.ticket.code}/confirm`, { pin: "4321" });
+  assert.equal(paid.status, 200);
+  assert.equal(paid.body.ticket.status, "confirmed");
 
   const found = await get(`/api/tickets/lookup?code=${body.ticket.code}&phone=0987654321`);
   assert.equal(found.status, 200);
+});
+
+test("pay-at-park bookings are confirmed immediately, pending ones hold the slot", async () => {
+  const atPark = await post("/api/bookings", {
+    facilityId: "asp-padel-1",
+    date: today,
+    hour: 8,
+    durationHours: 1,
+    name: "Kenenisa",
+    phone: "0913333333",
+    paymentMethod: "pay-at-park"
+  });
+  assert.equal(atPark.status, 201);
+  assert.equal(atPark.body.booking.status, "confirmed");
+
+  const pending = await post("/api/bookings", {
+    facilityId: "asp-padel-1",
+    date: today,
+    hour: 9,
+    durationHours: 1,
+    name: "Haile",
+    phone: "0914444444",
+    paymentMethod: "chapa"
+  });
+  assert.equal(pending.body.booking.status, "pending-payment");
+
+  // An unpaid reservation still blocks the slot until it expires.
+  const avail = await get(
+    `/api/parks/addis-sport-park/availability?facilityId=asp-padel-1&date=${today}`
+  );
+  assert.equal(avail.body.slots.find((s) => s.hour === 9).available, false);
+
+  // Unknown payment refs and bad PINs are rejected.
+  assert.equal((await post("/api/payments/ETP-NOPE00/confirm", { pin: "1234" })).status, 404);
+  assert.equal(
+    (await post(`/api/payments/${pending.body.booking.code}/confirm`, { pin: "abc" })).status,
+    400
+  );
 });
 
 test("admin summary aggregates bookings and revenue", async () => {

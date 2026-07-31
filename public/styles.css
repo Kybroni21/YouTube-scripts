@@ -279,7 +279,15 @@ th { background: #eef4f0; font-size: 0.82rem; text-transform: uppercase; letter-
 tr:last-child td { border-bottom: none; }
 
 .status-confirmed { color: var(--green-dark); font-weight: 700; }
-.status-cancelled { color: var(--red); font-weight: 700; }
+.status-cancelled, .status-expired { color: var(--red); font-weight: 700; }
+.status-pending-payment { color: #a4770d; font-weight: 700; }
+
+.pay-amount {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  margin: 0.4rem 0 0.9rem;
+}
 
 .notice { color: var(--muted); }
 .error-msg { color: var(--red); font-weight: 600; margin: 0.5rem 0; }

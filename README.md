@@ -23,8 +23,13 @@ volleyball and more — and buy entrance tickets straight from their phone.
   `demo-<park-id>` (e.g. `demo-entoto-park`).
 - **Operations dashboard** — live bookings, ticket visitors and revenue per park.
 - **Bilingual UI** — full English / Amharic (አማርኛ) toggle.
-- **Ethiopian payments** — Telebirr, CBE Birr, Chapa or pay-at-park
-  (mocked in this MVP; real gateway integration is the next step).
+- **Ethiopian payments with a real checkout lifecycle** — Telebirr, CBE Birr
+  and Chapa bookings go through a simulated checkout: the reservation is held
+  for 10 minutes in `pending-payment` state (still blocking the slot), then
+  confirmed on payment or auto-expired. PIN `0000` simulates a provider
+  decline. Pay-at-park confirms immediately. Swapping the simulator for the
+  real gateway callback is a single endpoint
+  (`POST /api/payments/:code/confirm`).
 - **Phone validation** — accepts local numbers in `09…`, `07…`, `+251…` formats.
 
 ## Quick start
@@ -59,6 +64,7 @@ test/api.test.mjs  End-to-end API tests via node:test
 | POST | `/api/bookings` | Book a facility slot |
 | GET | `/api/bookings/lookup?code=&phone=` | Find a booking |
 | POST | `/api/bookings/:code/cancel` | Cancel a booking |
+| POST | `/api/payments/:code/confirm` | Confirm a pending payment (simulated gateway) |
 | POST | `/api/tickets` | Buy entrance tickets |
 | GET | `/api/tickets/lookup?code=&phone=` | Find a ticket |
 | GET | `/api/admin/summary` | Per-park bookings/revenue summary |
@@ -71,7 +77,8 @@ test/api.test.mjs  End-to-end API tests via node:test
 
 ## Roadmap to production
 
-1. **Real payments** — Telebirr H5/SuperApp and Chapa checkout integration.
+1. **Real payments** — replace the simulated confirm endpoint with Telebirr
+   H5/SuperApp and Chapa server callbacks (merchant credentials required).
 2. **SMS confirmations** — send the confirmation code via SMS gateway.
 3. **Blackout dates & maintenance windows** for park staff.
 4. **Database & auth hardening** — replace the JSON store with Postgres;

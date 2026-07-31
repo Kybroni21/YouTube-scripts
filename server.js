@@ -13,6 +13,10 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(ROOT, "public");
 
 const PAYMENT_METHODS = ["telebirr", "cbe-birr", "chapa", "pay-at-park"];
+// Digital methods go through a (simulated) checkout; the reservation is held
+// for PAYMENT_WINDOW_MIN minutes and expires if it isn't paid.
+const DIGITAL_METHODS = ["telebirr", "cbe-birr", "chapa"];
+const PAYMENT_WINDOW_MIN = 10;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -127,6 +131,21 @@ function parseFacilityInput(parkId, input, index, existing) {
 
 const PARK_THEMES = ["#1a7a4c", "#2d6a4f", "#1d6fa5", "#9a6a1f", "#40916c", "#0d7a8a", "#52796f", "#1e5f8a"];
 
+// Lazily expire unpaid reservations whose payment window has passed.
+function expirePending() {
+  const now = Date.now();
+  let changed = false;
+  for (const list of [bookings.all(), tickets.all()]) {
+    for (const item of list) {
+      if (item.status === "pending-payment" && Date.parse(item.paymentExpiresAt) < now) {
+        item.status = "expired";
+        changed = true;
+      }
+    }
+  }
+  if (changed) bookings.update();
+}
+
 function availabilityFor(park, facility, date) {
   const taken = new Set();
   for (const b of bookings.forSlot(facility.id, date)) {
@@ -213,6 +232,7 @@ const routes = [
           return json(res, 409, { error: "slot no longer available", conflictHour: x });
       }
 
+      const digital = DIGITAL_METHODS.includes(paymentMethod);
       const booking = bookings.add({
         code: makeCode("ETP"),
         parkId: park.id,
@@ -224,7 +244,10 @@ const routes = [
         phone: normPhone,
         paymentMethod,
         amountETB: facility.pricePerHourETB * dur,
-        status: "confirmed",
+        status: digital ? "pending-payment" : "confirmed",
+        ...(digital && {
+          paymentExpiresAt: new Date(Date.now() + PAYMENT_WINDOW_MIN * 60_000).toISOString()
+        }),
         createdAt: new Date().toISOString()
       });
       json(res, 201, { booking });
@@ -251,7 +274,8 @@ const routes = [
       const booking = bookings.find(code.toUpperCase());
       if (!booking || !phone || booking.phone !== phone)
         return json(res, 404, { error: "no booking found for that code and phone" });
-      if (booking.status === "cancelled") return json(res, 200, { booking });
+      if (booking.status === "cancelled" || booking.status === "expired")
+        return json(res, 200, { booking });
       booking.status = "cancelled";
       booking.cancelledAt = new Date().toISOString();
       bookings.update(booking);
@@ -283,6 +307,7 @@ const routes = [
       if (!PAYMENT_METHODS.includes(paymentMethod))
         return badRequest(res, `paymentMethod must be one of: ${PAYMENT_METHODS.join(", ")}`);
 
+      const digital = DIGITAL_METHODS.includes(paymentMethod);
       const ticket = tickets.add({
         code: makeCode("TKT"),
         parkId: park.id,
@@ -293,7 +318,10 @@ const routes = [
         phone: normPhone,
         paymentMethod,
         amountETB: a * park.entrance.adultETB + c * park.entrance.childETB,
-        status: "confirmed",
+        status: digital ? "pending-payment" : "confirmed",
+        ...(digital && {
+          paymentExpiresAt: new Date(Date.now() + PAYMENT_WINDOW_MIN * 60_000).toISOString()
+        }),
         createdAt: new Date().toISOString()
       });
       json(res, 201, { ticket });
@@ -333,6 +361,36 @@ const routes = [
         };
       });
       json(res, 200, { summary });
+    }
+  },
+  {
+    // Simulated payment provider confirmation (Telebirr / CBE Birr / Chapa).
+    // Real integration replaces this with the gateway's server callback.
+    method: "POST",
+    pattern: /^\/api\/payments\/([\w-]+)\/confirm$/,
+    async handler(req, res, [, code]) {
+      const body = await readBody(req);
+      code = code.toUpperCase();
+      const item = bookings.find(code) || tickets.find(code);
+      if (!item) return json(res, 404, { error: "unknown payment reference" });
+      const kind = code.startsWith("TKT") ? "ticket" : "booking";
+      if (item.status === "confirmed") return json(res, 200, { [kind]: item });
+      if (item.status === "expired")
+        return json(res, 410, { error: "payment window expired — please book again" });
+      if (item.status !== "pending-payment")
+        return json(res, 409, { error: `cannot pay a ${item.status} ${kind}` });
+
+      const pin = String(body.pin ?? "");
+      if (!/^\d{4,6}$/.test(pin)) return badRequest(res, "pin must be 4-6 digits");
+      // Demo rule: PIN 0000 simulates a decline from the provider.
+      if (pin === "0000")
+        return json(res, 402, { error: "payment declined by provider (demo: try any other PIN)" });
+
+      item.status = "confirmed";
+      item.paidAt = new Date().toISOString();
+      delete item.paymentExpiresAt;
+      (kind === "ticket" ? tickets : bookings).update(item);
+      json(res, 200, { [kind]: item });
     }
   },
   {
@@ -497,6 +555,7 @@ export const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
   if (url.pathname.startsWith("/api/")) {
+    expirePending();
     for (const route of routes) {
       const m = url.pathname.match(route.pattern);
       if (m && req.method === route.method) {
